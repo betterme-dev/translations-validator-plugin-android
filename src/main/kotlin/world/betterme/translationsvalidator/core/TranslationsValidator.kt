@@ -69,8 +69,7 @@ class TranslationsValidator(
         // Validate placeholder count
         if (referencePlaceholders.size != localizedPlaceholders.size) {
             validationErrors.add(
-                "Placeholder count mismatch for key '$key' in locale '$locale'. " +
-                        "Expected ${referencePlaceholders.size}, found ${localizedPlaceholders.size}."
+                "Placeholder count mismatch for key '$key' in locale '$locale'. " + "Expected ${referencePlaceholders.size}, found ${localizedPlaceholders.size}."
             )
         }
 
@@ -88,10 +87,17 @@ class TranslationsValidator(
 
     /**
      * Extracts placeholders like %1$s, %1$d from the text.
+     * Returns an ordered list of placeholders based on their index (e.g., %1$d, %2$s).
+     * Non-positional placeholders (e.g., %s, %d) will be pushed to the end of the list.
      */
     private fun extractPlaceholdersFromText(text: String): List<String> {
-        val placeholderRegex = """%\d+\$[a-zA-Z]|\%[a-zA-Z]""".toRegex()
-        return placeholderRegex.findAll(text).map { it.value }.toList()
+        val placeholderRegex = """%\d+\$[a-zA-Z]|%[a-zA-Z]""".toRegex()
+        return placeholderRegex.findAll(text)
+            .map { it.value }
+            .sortedBy { placeholder ->
+                placeholder.substringAfter("%").substringBefore("$").toIntOrNull() ?: Int.MAX_VALUE
+            }
+            .toList()
     }
 
     companion object Factory {

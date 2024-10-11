@@ -75,6 +75,26 @@ class TranslationsValidatorTest {
     }
 
     @Test
+    fun `validateAll correct compare placeholder when order mismatch`() {
+        val parentPath = "src/test/resources/order_mismatch"
+        val englishFile = File("$parentPath/value/strings.xml")
+        val frenchFile = File("$parentPath/value-ar/strings.xml")
+
+        every { store.getFiles() } returns listOf(englishFile, frenchFile)
+
+        val validator = TranslationsValidator(
+            store = store,
+            xmlParser = parser,
+            notifier = notifier,
+            shouldReportToSlack = true
+        )
+        validator.validateAll()
+
+        verify { store.getFiles() }
+        verify(exactly = 0) { notifier.sendSlackMessage(any()) }
+    }
+
+    @Test
     fun `validateAll should not report to Slack if shouldReportToSlack is false`() {
         val parentPath = "src/test/resources/count_mismatch"
         val englishFile = File("$parentPath/value/strings.xml")
