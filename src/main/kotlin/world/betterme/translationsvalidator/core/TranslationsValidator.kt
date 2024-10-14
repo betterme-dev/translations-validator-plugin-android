@@ -48,9 +48,11 @@ class TranslationsValidator(
             }
         }
 
-        if (validationErrors.isNotEmpty() && shouldReportToSlack) {
+        if (validationErrors.isNotEmpty()) {
             val report = validationErrors.joinToString(separator = "\n")
-            notifier.sendSlackMessage("Translation validation issues:\n$report")
+            val msg = "Translation validation issues:\n$report"
+            println(msg)
+            if (shouldReportToSlack) notifier.sendSlackMessage(msg)
         } else {
             println("All translations validated successfully!")
         }
