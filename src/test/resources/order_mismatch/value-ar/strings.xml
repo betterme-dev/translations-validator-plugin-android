@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">نص نص نص %1$s نص نص %2$d</string>
+    <string name="hello">text %2$d text %3$s text text %1$s</string>
+</resources>
