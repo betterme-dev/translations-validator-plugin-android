@@ -14,7 +14,6 @@ open class TranslationsValidatorPlugin : Plugin<Project> {
 
         project.tasks.create("validateTranslations", ValidateTranslationsTask::class.java) {
             it.resourcesPath.set(extension.resourcesPath)
-            it.reportToSlack?.set(extension.reportToSlack)
             it.slackWebHook.set(extension.slackWebHook)
         }
     }
