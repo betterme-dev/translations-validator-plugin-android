@@ -22,6 +22,11 @@ open class ValidateTranslationsTask : DefaultTask() {
         .property(Boolean::class.java)
         .convention(false)
 
+    @Input
+    @Optional
+    val reportPayload: Property<String> = project.objects
+        .property(String::class.java)
+
     init {
         description =
             "Validates placeholders from translated strings.xml files by comparing them with main strings.xml file"
@@ -33,13 +38,19 @@ open class ValidateTranslationsTask : DefaultTask() {
         this.reportToSlack.set(reportToSlack)
     }
 
+    @Option(option = "reportPayload", description = "Will add additional payload to slack report")
+    fun setReportPayload(reportPayload: String) {
+        this.reportPayload.set(reportPayload)
+    }
+
     @Suppress("unused")
     @TaskAction
     fun validatePlaceholders() {
         val translationsValidator = TranslationsValidator.create(
             resourcesPath = resourcesPath.get(),
             shouldReportToSlack = reportToSlack.get(),
-            slackWebHook = slackWebHook.get()
+            slackWebHook = slackWebHook.get(),
+            reportPayload = reportPayload.get()
         )
         translationsValidator.validateAll()
     }

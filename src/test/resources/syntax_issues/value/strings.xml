@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error1">Hello %3s</string>
+    <string name="error2">Hello %1$ s</string>
+    <string name="error3">Hello %1$2</string>
+    <string name="error3">Hello %s$</string>
+    <string name="error4">Hello % s</string>
+    <string name="error5">Hello %1 $s</string>
+    <string name="error6">Hello %$s</string>
+    <string name="error7">Hello %$s</string>
+
+    <string name="error8">Hello %3s error</string>
+    <string name="error9">Hello %1$ s error</string>
+    <string name="error10">Hello %1$2 error</string>
+    <string name="error11">Hello %s$ error</string>
+    <string name="error12">Hello % s error</string>
+    <string name="error13">Hello %1 $s error</string>
+    <string name="error14">Hello %$s error</string>
+    <string name="error15">Hello %$s error</string>
+</resources>
