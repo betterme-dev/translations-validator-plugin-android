@@ -130,19 +130,22 @@ class TranslationsValidator(
 
     private fun findIncorrectPlaceholders(text: String): List<String> {
         return incorrectPlaceholders.flatMap { pattern ->
-            pattern.toRegex().findAll(text).map { it.value }.toList()
+            pattern.toRegex().findAll(text).mapNotNull {
+                //exclude time formats
+                if (!it.value.contains("%\\d\\d[s,d]".toRegex())) it.value else null
+            }.toList()
         }
     }
 
     private val incorrectPlaceholders = listOf(
-        """%\d+[a-zA-Z]""",           // %1s (no $)
-        """%\d+\$\s+[a-zA-Z]""",      // %1$ s (space between $ and type)
-        """%\d+\$\d+""",              // %1$2 (invalid position after $)
-        """%[a-zA-Z]+\$""",           // %s$ (invalid at end)
-        """%\s+[a-zA-Z]""",           // % s (space between % and type)
-        """%\d+\s+\$\w""",            // %1 $s (space between number and $)
-        """%\${'$'}s+""",             // %$s (invalid position)
-        """ \${'$'}s+ """,            // $s (no %)
+        """%\d+[s,d]""",           // %1s (no $)
+        """%\d+\$\s+[s,d]""",      // %1$ s (space between $ and type)
+        """%\d+\$\d+""",           // %1$2 (invalid position after $)
+        """%[s, d]+\$""",          // %s$ (invalid at end)
+        """%\s+[s, d] """,          // % s (space between % and type)
+        """%\d+\s+\$\w""",         // %1 $s (space between number and $)
+        """%\${'$'}s+""",          // %$s (invalid position)
+        """ \${'$'}s+ """,         // $s (no %)
     )
 
     companion object Factory {

@@ -157,12 +157,6 @@ class TranslationsValidatorTest {
                         "  Locale: `fr`\n" +
                         "    - syntax issues with placeholders: %s\$\n" +
                         "\n" +
-                        "Key `error4` issues:\n" +
-                        "  Locale: `en`\n" +
-                        "    - syntax issues with placeholders: % s\n" +
-                        "  Locale: `fr`\n" +
-                        "    - syntax issues with placeholders: % s\n" +
-                        "\n" +
                         "Key `error5` issues:\n" +
                         "  Locale: `en`\n" +
                         "    - syntax issues with placeholders: %1 \$s\n" +
@@ -199,7 +193,7 @@ class TranslationsValidatorTest {
                         "\n" +
                         "Key `error12` issues:\n" +
                         "  Locale: `en`\n" +
-                        "    - syntax issues with placeholders: % s\n" +
+                        "    - syntax issues with placeholders: % s \n" +
                         "\n" +
                         "Key `error13` issues:\n" +
                         "  Locale: `en`\n" +
