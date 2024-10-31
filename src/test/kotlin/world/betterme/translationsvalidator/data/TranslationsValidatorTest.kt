@@ -58,10 +58,10 @@ class TranslationsValidatorTest {
         verify { store.getFiles() }
         verify {
             notifier.sendSlackMessage(
-                "Translation validation issues:\n" +
+                "Placeholder validation issues for translation keys:\n" +
                         "\n" +
-                        "Key `hello` issues:\n" +
-                        "    - count mismatch. Expected 2 placeholders, found 1 in locales:\n" +
+                        "`hello`:\n" +
+                        "    - count mismatch. Expected 2, found 1 in locales:\n" +
                         "      `fr`\n" +
                         "\n" +
                         "PR: Validation plugin \n" +
@@ -88,9 +88,9 @@ class TranslationsValidatorTest {
         verify { store.getFiles() }
         verify {
             notifier.sendSlackMessage(match {
-                it == "Translation validation issues:\n" +
+                it == "Placeholder validation issues for translation keys:\n" +
                         "\n" +
-                        "Key `hello` issues:\n" +
+                        "`hello`:\n" +
                         "    - type mismatch at position 0. Expected %1\$s, found %1\$d in locales:\n" +
                         "      `fr`\n" +
                         "\n" +
@@ -137,62 +137,62 @@ class TranslationsValidatorTest {
         verify { store.getFiles() }
         verify {
             notifier.sendSlackMessage(match {
-                it == "Translation validation issues:\n" +
+                it == "Placeholder validation issues for translation keys:\n" +
                         "\n" +
-                        "Key `error1` issues:\n" +
-                        "    - syntax issues with placeholder: %3s in locales:\n" +
+                        "`error1`:\n" +
+                        "    - syntax error: %3s in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error2` issues:\n" +
-                        "    - syntax issues with placeholder: %1\$ s in locales:\n" +
+                        "`error2`:\n" +
+                        "    - syntax error: %1\$ s in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error3` issues:\n" +
-                        "    - syntax issues with placeholder: %s\$ in locales:\n" +
+                        "`error3`:\n" +
+                        "    - syntax error: %s\$ in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error5` issues:\n" +
-                        "    - syntax issues with placeholder: %1 \$s in locales:\n" +
+                        "`error5`:\n" +
+                        "    - syntax error: %1 \$s in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error6` issues:\n" +
-                        "    - syntax issues with placeholder: %\$s in locales:\n" +
+                        "`error6`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error7` issues:\n" +
-                        "    - syntax issues with placeholder: %\$s in locales:\n" +
+                        "`error7`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
                         "      `en`, `fr`\n" +
                         "\n" +
-                        "Key `error8` issues:\n" +
-                        "    - syntax issues with placeholder: %3s in locales:\n" +
+                        "`error8`:\n" +
+                        "    - syntax error: %3s in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error9` issues:\n" +
-                        "    - syntax issues with placeholder: %1\$ s in locales:\n" +
+                        "`error9`:\n" +
+                        "    - syntax error: %1\$ s in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error10` issues:\n" +
-                        "    - syntax issues with placeholder: %1\$2 in locales:\n" +
+                        "`error10`:\n" +
+                        "    - syntax error: %1\$2 in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error11` issues:\n" +
-                        "    - syntax issues with placeholder: %s\$ in locales:\n" +
+                        "`error11`:\n" +
+                        "    - syntax error: %s\$ in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error12` issues:\n" +
-                        "    - syntax issues with placeholder: % s  in locales:\n" +
+                        "`error12`:\n" +
+                        "    - syntax error: % s  in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error13` issues:\n" +
-                        "    - syntax issues with placeholder: %1 \$s,  \$s  in locales:\n" +
+                        "`error13`:\n" +
+                        "    - syntax error: %1 \$s,  \$s  in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error14` issues:\n" +
-                        "    - syntax issues with placeholder: %\$s in locales:\n" +
+                        "`error14`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
                         "      `en`\n" +
                         "\n" +
-                        "Key `error15` issues:\n" +
-                        "    - syntax issues with placeholder: %\$s in locales:\n" +
+                        "`error15`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
                         "      `en`\n" +
                         "\n" +
                         "PR: Validation plugin \n" +

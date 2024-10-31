@@ -19,14 +19,14 @@ class IssuesReporter(
         validationErrors: List<ValidationError>,
     ): String {
         return buildString {
-            appendLine("Translation validation issues:")
+            appendLine("Placeholder validation issues for translation keys:")
             appendLine()
 
             // Grouping errors by keys
             val groupedErrors = validationErrors.groupBy { it.key }
 
             for ((key, errors) in groupedErrors) {
-                appendLine("Key `$key` issues:")
+                appendLine("`$key`:")
 
                 // Grouping errors by issue type
                 val issuesByType = errors.groupBy { it.type.id }
@@ -48,7 +48,7 @@ class IssuesReporter(
 
                     val placeholdersString = placeholders.joinToString(", ")
                     val localesString = localeMap[IssueType.Syntax.ID]?.distinct()?.joinToString(", ").orEmpty()
-                    appendLine("    - syntax issues with placeholder: $placeholdersString in locales:")
+                    appendLine("    - syntax error: $placeholdersString in locales:")
                     appendLine("      $localesString")
                 }
 
@@ -89,7 +89,7 @@ class IssuesReporter(
                     countMismatchMap.forEach { (key, locales) ->
                         val (expected, actual) = key.split("_")
                         val localesString = locales.distinct().joinToString(", ")
-                        appendLine("    - count mismatch. Expected $expected placeholders, found $actual in locales:")
+                        appendLine("    - count mismatch. Expected $expected, found $actual in locales:")
                         appendLine("      $localesString")
                     }
                 }
