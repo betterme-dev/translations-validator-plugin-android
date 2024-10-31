@@ -24,7 +24,7 @@ open class ValidateTranslationsTask : DefaultTask() {
 
     @Input
     @Optional
-    val reportPayload: Property<String> = project.objects
+    val reportPayload: Property<String?> = project.objects
         .property(String::class.java)
 
     init {
@@ -50,7 +50,7 @@ open class ValidateTranslationsTask : DefaultTask() {
             resourcesPath = resourcesPath.get(),
             shouldReportToSlack = reportToSlack.get(),
             slackWebHook = slackWebHook.get(),
-            reportPayload = reportPayload.get()
+            reportPayload = reportPayload.orNull
         )
         translationsValidator.validateAll()
     }

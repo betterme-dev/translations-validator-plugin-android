@@ -39,16 +39,16 @@ class IssuesReporterTest {
         val expectedReport = "Translation validation issues:\n" +
                 "\n" +
                 "Key `key1` issues:\n" +
-                "  Locale: `en`\n" +
-                "    - count mismatch. Expected 2 placeholders, found 1.\n" +
+                "    - count mismatch. Expected 2 placeholders, found 1 in locales:\n" +
+                "      `en`\n" +
                 "\n" +
                 "Key `key2` issues:\n" +
-                "  Locale: `en`\n" +
-                "    - type mismatch at position 0. Expected %s, found %d.\n" +
+                "    - type mismatch at position 0. Expected %s, found %d in locales:\n" +
+                "      `en`\n" +
                 "\n" +
                 "Key `key3` issues:\n" +
-                "  Locale: `en`\n" +
-                "    - syntax issues with placeholders: \$s, %1 \$s\n" +
+                "    - syntax issues with placeholder: \$s, %1 \$s in locales:\n" +
+                "      `en`\n" +
                 "\n" +
                 "Author: AMayst\n"
 

@@ -22,46 +22,75 @@ class IssuesReporter(
             appendLine("Translation validation issues:")
             appendLine()
 
-            // Grouping errors by keys and locales
+            // Grouping errors by keys
             val groupedErrors = validationErrors.groupBy { it.key }
 
             for ((key, errors) in groupedErrors) {
                 appendLine("Key `$key` issues:")
 
-                // Grouping errors by locale
-                val errorsByLocale = errors.groupBy { it.locale }
-                for ((locale, localeErrors) in errorsByLocale) {
-                    appendLine("  Locale: `$locale`")
+                // Grouping errors by issue type
+                val issuesByType = errors.groupBy { it.type.id }
+                val localeMap = mutableMapOf<Int, MutableList<String>>()
 
-                    // Collecting and categorizing error messages
-                    val syntaxIssues = localeErrors.filter { it.type is IssueType.Syntax }
-                    val typeMismatches = localeErrors.filter { it.type is IssueType.Type }
-                    val countMismatches = localeErrors.filter { it.type is IssueType.Count }
+                // Collect and report syntax issues
+                val syntaxIssues = issuesByType[IssueType.Syntax.ID]
+                if (!syntaxIssues.isNullOrEmpty()) {
+                    val placeholders = syntaxIssues.flatMap {
+                        (it.type as IssueType.Syntax).placeholders
+                    }.distinct()
 
-                    // Reporting syntax issues
-                    if (syntaxIssues.isNotEmpty()) {
-                        val placeholders = syntaxIssues.flatMap {
-                            (it.type as IssueType.Syntax).placeholders
-                        }
-                        appendLine(
-                            "    - syntax issues with placeholders: ${
-                                placeholders.joinToString(
-                                    ", "
-                                )
-                            }"
-                        )
+                    // Collecting locales for syntax issues
+                    syntaxIssues.forEach {
+                        localeMap
+                            .getOrPut(IssueType.Syntax.ID) { mutableListOf() }
+                            .add("`${it.locale}`")
                     }
 
-                    // Reporting type mismatches
-                    for (typeMismatch in typeMismatches) {
-                        val errorType = typeMismatch.type as IssueType.Type
-                        appendLine("    - type mismatch at position ${errorType.position}. Expected ${errorType.expected}, found ${errorType.actual}.")
+                    val placeholdersString = placeholders.joinToString(", ")
+                    val localesString = localeMap[IssueType.Syntax.ID]?.distinct()?.joinToString(", ").orEmpty()
+                    appendLine("    - syntax issues with placeholder: $placeholdersString in locales:")
+                    appendLine("      $localesString")
+                }
+
+                // Collect and report type mismatches
+                val typeMismatches = issuesByType[IssueType.Type.ID]
+                if (!typeMismatches.isNullOrEmpty()) {
+                    // Aggregate unique type mismatches by position and expected/actual values
+                    val typeMismatchMap = mutableMapOf<String, MutableList<String>>()
+                    typeMismatches.forEach {
+                        val typeMismatch = it.type as IssueType.Type
+                        val mismatchKey = "${typeMismatch.position}_${typeMismatch.expected}_${typeMismatch.actual}"
+                        typeMismatchMap
+                            .getOrPut(mismatchKey) { mutableListOf() }
+                            .add("`${it.locale}`")
                     }
 
-                    // Reporting count mismatches
-                    for (countMismatch in countMismatches) {
-                        val errorType = countMismatch.type as IssueType.Count
-                        appendLine("    - count mismatch. Expected ${errorType.expected} placeholders, found ${errorType.actual}.")
+                    typeMismatchMap.forEach { (key, locales) ->
+                        val (position, expected, actual) = key.split("_")
+                        val localesString = locales.distinct().joinToString(", ")
+                        appendLine("    - type mismatch at position $position. Expected $expected, found $actual in locales:")
+                        appendLine("      $localesString")
+                    }
+                }
+
+                // Collect and report count mismatches
+                val countMismatches = issuesByType[IssueType.Count.ID]
+                if (!countMismatches.isNullOrEmpty()) {
+                    // Aggregate unique count mismatches by expected and actual values
+                    val countMismatchMap = mutableMapOf<String, MutableList<String>>()
+                    countMismatches.forEach {
+                        val countMismatch = it.type as IssueType.Count
+                        val mismatchKey = "${countMismatch.expected}_${countMismatch.actual}"
+                        countMismatchMap
+                            .getOrPut(mismatchKey) { mutableListOf() }
+                            .add("`${it.locale}`")
+                    }
+
+                    countMismatchMap.forEach { (key, locales) ->
+                        val (expected, actual) = key.split("_")
+                        val localesString = locales.distinct().joinToString(", ")
+                        appendLine("    - count mismatch. Expected $expected placeholders, found $actual in locales:")
+                        appendLine("      $localesString")
                     }
                 }
 
@@ -74,5 +103,4 @@ class IssuesReporter(
             }
         }
     }
-
 }

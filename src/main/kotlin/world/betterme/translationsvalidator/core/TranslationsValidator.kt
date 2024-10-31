@@ -8,10 +8,25 @@ typealias Resources = Map<String, String>
 
 data class ValidationError(val key: String, val locale: Locale, val type: IssueType)
 
-sealed interface IssueType {
-    data class Count(val expected: Int, val actual: Int) : IssueType
-    data class Type(val position: Int, val expected: String, val actual: String) : IssueType
-    data class Syntax(val placeholders: List<String>) : IssueType
+sealed class IssueType(val id: Int) {
+
+    data class Count(val expected: Int, val actual: Int) : IssueType(ID) {
+        companion object {
+            const val ID = 0
+        }
+    }
+
+    data class Type(val position: Int, val expected: String, val actual: String) : IssueType(ID) {
+        companion object {
+            const val ID = 1
+        }
+    }
+
+    data class Syntax(val placeholders: List<String>) : IssueType(ID) {
+        companion object {
+            const val ID = 2
+        }
+    }
 }
 
 class TranslationsValidator(
