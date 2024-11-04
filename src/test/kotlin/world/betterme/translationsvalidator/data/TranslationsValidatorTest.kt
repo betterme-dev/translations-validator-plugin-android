@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
+import world.betterme.translationsvalidator.core.IssuesReporter
 import world.betterme.translationsvalidator.core.SlackNotifier
 import world.betterme.translationsvalidator.core.TranslationsValidator
 import world.betterme.translationsvalidator.core.XmlParser
@@ -14,6 +15,11 @@ class TranslationsValidatorTest {
     private val store = mockk<TranslationsLocalStore>()
     private val parser = XmlParser()
     private val notifier = mockk<SlackNotifier>(relaxed = true)
+    private val issuesReporter = IssuesReporter(
+        notifier = notifier,
+        shouldReportToSlack = true,
+        reportPayload = "PR: Validation plugin \nAuthor: AMayst"
+    )
 
     @Test
     fun `validateAll should pass when all translations are valid`() {
@@ -26,8 +32,7 @@ class TranslationsValidatorTest {
         val validator = TranslationsValidator(
             store = store,
             xmlParser = parser,
-            notifier = notifier,
-            shouldReportToSlack = true
+            issuesReporter = issuesReporter,
         )
         validator.validateAll()
 
@@ -43,11 +48,26 @@ class TranslationsValidatorTest {
 
         every { store.getFiles() } returns listOf(englishFile, frenchFile)
 
-        val validator = TranslationsValidator(store, parser, notifier, shouldReportToSlack = true)
+        val validator = TranslationsValidator(
+            store = store,
+            xmlParser = parser,
+            issuesReporter = issuesReporter
+        )
         validator.validateAll()
 
         verify { store.getFiles() }
-        verify { notifier.sendSlackMessage("Translation validation issues:\nPlaceholder count mismatch for key 'hello' in locale 'fr'. Expected 2, found 1.") }
+        verify {
+            notifier.sendSlackMessage(
+                "Placeholder validation issues for translation keys:\n" +
+                        "\n" +
+                        "`hello`:\n" +
+                        "    - count mismatch. Expected 2, found 1 in locales:\n" +
+                        "      `fr`\n" +
+                        "\n" +
+                        "PR: Validation plugin \n" +
+                        "Author: AMayst\n"
+            )
+        }
     }
 
     @Test
@@ -61,15 +81,21 @@ class TranslationsValidatorTest {
         val validator = TranslationsValidator(
             store = store,
             xmlParser = parser,
-            notifier = notifier,
-            shouldReportToSlack = true
+            issuesReporter = issuesReporter
         )
         validator.validateAll()
 
         verify { store.getFiles() }
         verify {
             notifier.sendSlackMessage(match {
-                it == "Translation validation issues:\nPlaceholder type mismatch for key 'hello' in locale 'fr' at position 0. Expected %1\$s, found %1\$d."
+                it == "Placeholder validation issues for translation keys:\n" +
+                        "\n" +
+                        "`hello`:\n" +
+                        "    - type mismatch at position 0. Expected %1\$s, found %1\$d in locales:\n" +
+                        "      `fr`\n" +
+                        "\n" +
+                        "PR: Validation plugin \n" +
+                        "Author: AMayst\n"
             })
         }
     }
@@ -85,8 +111,7 @@ class TranslationsValidatorTest {
         val validator = TranslationsValidator(
             store = store,
             xmlParser = parser,
-            notifier = notifier,
-            shouldReportToSlack = true
+            issuesReporter = issuesReporter
         )
         validator.validateAll()
 
@@ -95,8 +120,8 @@ class TranslationsValidatorTest {
     }
 
     @Test
-    fun `validateAll should not report to Slack if shouldReportToSlack is false`() {
-        val parentPath = "src/test/resources/count_mismatch"
+    fun `validateAll should report placeholder syntax issues`() {
+        val parentPath = "src/test/resources/syntax_issues"
         val englishFile = File("$parentPath/value/strings.xml")
         val frenchFile = File("$parentPath/value-fr/strings.xml")
 
@@ -105,12 +130,74 @@ class TranslationsValidatorTest {
         val validator = TranslationsValidator(
             store = store,
             xmlParser = parser,
-            notifier = notifier,
-            shouldReportToSlack = false
+            issuesReporter = issuesReporter
         )
         validator.validateAll()
 
         verify { store.getFiles() }
-        verify(exactly = 0) { notifier.sendSlackMessage(any()) }
+        verify {
+            notifier.sendSlackMessage(match {
+                it == "Placeholder validation issues for translation keys:\n" +
+                        "\n" +
+                        "`error1`:\n" +
+                        "    - syntax error: %3s in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error2`:\n" +
+                        "    - syntax error: %1\$ s in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error3`:\n" +
+                        "    - syntax error: %s\$ in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error5`:\n" +
+                        "    - syntax error: %1 \$s in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error6`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error7`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
+                        "      `en`, `fr`\n" +
+                        "\n" +
+                        "`error8`:\n" +
+                        "    - syntax error: %3s in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error9`:\n" +
+                        "    - syntax error: %1\$ s in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error10`:\n" +
+                        "    - syntax error: %1\$2 in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error11`:\n" +
+                        "    - syntax error: %s\$ in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error12`:\n" +
+                        "    - syntax error: % s  in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error13`:\n" +
+                        "    - syntax error: %1 \$s,  \$s  in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error14`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "`error15`:\n" +
+                        "    - syntax error: %\$s in locales:\n" +
+                        "      `en`\n" +
+                        "\n" +
+                        "PR: Validation plugin \n" +
+                        "Author: AMayst\n"
+            })
+        }
     }
 }

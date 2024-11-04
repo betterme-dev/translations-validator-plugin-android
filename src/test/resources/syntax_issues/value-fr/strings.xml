@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error1">Bonjour %3s</string>
+    <string name="error2">Bonjour %1$ s</string>
+    <string name="error3">Bonjour %1$2</string>
+    <string name="error3">Bonjour %s$</string>
+    <string name="error4">Bonjour % s</string>
+    <string name="error5">Bonjour %1 $s</string>
+    <string name="error6">Bonjour %$s</string>
+    <string name="error7">Bonjour %$s</string>
+</resources>

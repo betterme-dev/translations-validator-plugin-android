@@ -6,11 +6,33 @@ import java.util.Locale
 
 typealias Resources = Map<String, String>
 
+data class ValidationError(val key: String, val locale: Locale, val type: IssueType)
+
+sealed class IssueType(val id: Int) {
+
+    data class Count(val expected: Int, val actual: Int) : IssueType(ID) {
+        companion object {
+            const val ID = 0
+        }
+    }
+
+    data class Type(val position: Int, val expected: String, val actual: String) : IssueType(ID) {
+        companion object {
+            const val ID = 1
+        }
+    }
+
+    data class Syntax(val placeholders: List<String>) : IssueType(ID) {
+        companion object {
+            const val ID = 2
+        }
+    }
+}
+
 class TranslationsValidator(
     private val store: TranslationsLocalStore,
     private val xmlParser: XmlParser,
-    private val notifier: SlackNotifier,
-    private val shouldReportToSlack: Boolean,
+    private val issuesReporter: IssuesReporter
 ) {
 
     fun validateAll() {
@@ -32,7 +54,7 @@ class TranslationsValidator(
         val referenceTranslation = translations[referenceLocale]
             ?: throw IllegalArgumentException("Reference locale $referenceLocale is missing.")
 
-        val validationErrors = mutableListOf<String>()
+        val validationErrors = mutableListOf<ValidationError>()
         translations.forEach { (locale, translationStrings) ->
             translationStrings.forEach { (key, localizedText) ->
                 val referenceText = referenceTranslation[key]
@@ -48,14 +70,7 @@ class TranslationsValidator(
             }
         }
 
-        if (validationErrors.isNotEmpty()) {
-            val report = validationErrors.joinToString(separator = "\n")
-            val msg = "Translation validation issues:\n$report"
-            println(msg)
-            if (shouldReportToSlack) notifier.sendSlackMessage(msg)
-        } else {
-            println("All translations validated successfully!")
-        }
+        issuesReporter.report(validationErrors)
     }
 
     private fun validatePlaceholders(
@@ -63,7 +78,7 @@ class TranslationsValidator(
         localizedText: String,
         locale: Locale,
         key: String,
-        validationErrors: MutableList<String>
+        validationErrors: MutableList<ValidationError>
     ) {
         val referencePlaceholders = extractPlaceholdersFromText(referenceText)
         val localizedPlaceholders = extractPlaceholdersFromText(localizedText)
@@ -71,7 +86,14 @@ class TranslationsValidator(
         // Validate placeholder count
         if (referencePlaceholders.size != localizedPlaceholders.size) {
             validationErrors.add(
-                "Placeholder count mismatch for key '$key' in locale '$locale'. " + "Expected ${referencePlaceholders.size}, found ${localizedPlaceholders.size}."
+                ValidationError(
+                    key = key,
+                    locale = locale,
+                    type = IssueType.Count(
+                        expected = referencePlaceholders.size,
+                        actual = localizedPlaceholders.size
+                    ),
+                )
             )
         }
 
@@ -80,10 +102,29 @@ class TranslationsValidator(
             val localizedPlaceholder = localizedPlaceholders.getOrNull(index) ?: return@forEachIndexed
             if (referencePlaceholder != localizedPlaceholder) {
                 validationErrors.add(
-                    "Placeholder type mismatch for key '$key' in locale '$locale' at position $index. " +
-                            "Expected $referencePlaceholder, found $localizedPlaceholder."
+                    ValidationError(
+                        key = key,
+                        locale = locale,
+                        type = IssueType.Type(
+                            expected = referencePlaceholder,
+                            actual = localizedPlaceholder,
+                            position = index
+                        ),
+                    )
                 )
             }
+        }
+
+        // Validate placeholder syntax
+        val incorrectPlaceholders = findIncorrectPlaceholders(localizedText)
+        if (incorrectPlaceholders.isNotEmpty()) {
+            validationErrors.add(
+                ValidationError(
+                    key = key,
+                    locale = locale,
+                    type = IssueType.Syntax(incorrectPlaceholders),
+                )
+            )
         }
     }
 
@@ -102,22 +143,43 @@ class TranslationsValidator(
             .toList()
     }
 
+    private fun findIncorrectPlaceholders(text: String): List<String> {
+        return incorrectPlaceholders.flatMap { pattern ->
+            pattern.toRegex().findAll(text).mapNotNull {
+                //exclude time formats
+                if (!it.value.contains("%\\d\\d[s,d]".toRegex())) it.value else null
+            }.toList()
+        }
+    }
+
+    private val incorrectPlaceholders = listOf(
+        """%\d+[s,d]""",           // %1s (no $)
+        """%\d+\$\s+[s,d]""",      // %1$ s (space between $ and type)
+        """%\d+\$\d+""",           // %1$2 (invalid position after $)
+        """%[s, d]+\$""",          // %s$ (invalid at end)
+        """%\s+[s, d] """,          // % s (space between % and type)
+        """%\d+\s+\$\w""",         // %1 $s (space between number and $)
+        """%\${'$'}s+""",          // %$s (invalid position)
+        """ \${'$'}s+ """,         // $s (no %)
+    )
+
     companion object Factory {
 
         @JvmStatic
         fun create(
             resourcesPath: String,
             shouldReportToSlack: Boolean,
-            slackWebHook: String
+            slackWebHook: String,
+            reportPayload: String?
         ): TranslationsValidator {
             val store = TranslationsLocalStoreImpl(resourcesPath)
             val parser = XmlParser()
             val notifier = SlackNotifier(slackWebHook)
+            val issuesReporter = IssuesReporter(notifier, shouldReportToSlack, reportPayload)
             return TranslationsValidator(
                 store = store,
                 xmlParser = parser,
-                notifier = notifier,
-                shouldReportToSlack = shouldReportToSlack
+                issuesReporter = issuesReporter,
             )
         }
     }
